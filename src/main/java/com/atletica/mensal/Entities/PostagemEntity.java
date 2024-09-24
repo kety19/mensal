@@ -17,12 +17,12 @@ public class PostagemEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private String programacao;
-	private String valor;
+	private long valor;
 	private String observacao;
+	private String lote;
 	private String whatsappLink;
 	private LocalDateTime dataPostagem;
-	private String conteudo; 
+	private String imagem; 
 
 	@ManyToOne
 	@JoinColumn(name = "atletica_id")

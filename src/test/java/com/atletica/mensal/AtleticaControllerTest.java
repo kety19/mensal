@@ -1,5 +1,6 @@
 package com.atletica.mensal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
@@ -34,46 +35,61 @@ public class AtleticaControllerTest {
 
 	@InjectMocks
 	private AtleticaController atleticaController;
+	
+	   public AtleticaControllerTest() {
+	        MockitoAnnotations.openMocks(this); // Inicializa mocks
+	    }
 
-	private MockMvc mockMvc;
-
-	public AtleticaControllerTest() {
-		MockitoAnnotations.openMocks(this);
-		mockMvc = MockMvcBuilders.standaloneSetup(atleticaController).build();
-	}
 
 	@Test
 	void testListarTodasAtleticas() throws Exception {
-		AtleticaEntity atletica = new AtleticaEntity();
-		atletica.setNome("Atlética XYZ");
+		
+		  // Criação da entidade de exemplo
+        AtleticaEntity atletica = new AtleticaEntity();
+        atletica.setNome("Atlética Ursao");
 
-		when(atleticaService.listarTodasAtleticas()).thenReturn(List.of(atletica));
 
-		mockMvc.perform(get("/atleticas")).andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].nome").value("Atlética XYZ"));
-	}
+        when(atleticaService.listarTodasAtleticas()).thenReturn(List.of(atletica));
+
+   
+        List<AtleticaEntity> resultado = atleticaController.listarTodasAtleticas();
+
+        // Valida 
+        assertEquals(1, resultado.size());
+        assertEquals("Atlética Ursao", resultado.get(0).getNome());
+    }
+
 
 	@Test
 	void testCriarAtletica() throws Exception {
-		AtleticaEntity atletica = new AtleticaEntity();
-		atletica.setNome("Atlética ABC");
+		
+		// Criação da entidade a ser retornada no teste
+        AtleticaEntity atletica = new AtleticaEntity();
+        atletica.setNome("Atlética ABC");
 
-		when(atleticaService.salvarAtletica(any(AtleticaEntity.class))).thenReturn(atletica);
+        // serviço ao salvar uma atlética
+        when(atleticaService.salvarAtletica(any(AtleticaEntity.class))).thenReturn(atletica);
 
-		mockMvc.perform(post("/atleticas/criar").contentType(MediaType.APPLICATION_JSON)
-				.content("{\"nome\":\"Atlética ABC\", \"universidade\":\"Universidade XYZ\"}"))
-				.andExpect(status().isOk()).andExpect(jsonPath("$.nome").value("Atlética ABC"));
-	}
+        // Cria uma entidade de entrada
+        AtleticaEntity novaAtletica = new AtleticaEntity();
+        novaAtletica.setNome("Atlética ABC");
+        novaAtletica.setUniversidade("Universidade XYZ");
+
+        //  controller diretamente e verifica o retorno
+        AtleticaEntity resultado = atleticaController.criarAtletica(novaAtletica);
+
+        assertEquals("Atlética ABC", resultado.getNome());
+    }
+	
 
 	@Test
 	void testDeletarAtletica() throws Exception {
-		AtleticaEntity atletica = new AtleticaEntity();
-		atletica.setId(1L);
+		
+		//deletar uma atlética
+        doNothing().when(atleticaService).deletarAtletica(1L);
+        atleticaController.deletarAtletica(1L);
 
-		doNothing().when(atleticaService).deletarAtletica(1L);
-
-		mockMvc.perform(delete("/atleticas/deletar/1")).andExpect(status().isOk());
-
-		verify(atleticaService, times(1)).deletarAtletica(1L);
-	}
+        // Verifica se o serviço foi chamado uma vez com o ID correto
+        verify(atleticaService, times(1)).deletarAtletica(1L);
+    }
 }

@@ -8,4 +8,5 @@ import com.atletica.mensal.Entities.PostagemEntity;
 
 public interface PostagemRepository extends JpaRepository<PostagemEntity, Long> {
 	 List<PostagemEntity> findByAtleticaId(Long atletica_id);
+	 
 }

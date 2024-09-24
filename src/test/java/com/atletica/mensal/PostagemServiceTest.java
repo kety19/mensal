@@ -8,72 +8,78 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import com.atletica.mensal.Entities.AtleticaEntity;
 import com.atletica.mensal.Entities.PostagemEntity;
 import com.atletica.mensal.Repository.AtleticaRepository;
 import com.atletica.mensal.Repository.PostagemRepository;
+import com.atletica.mensal.Service.AtleticaService;
 import com.atletica.mensal.Service.PostagemService;
 
 @SpringBootTest
 public class PostagemServiceTest {
 
-    @Mock
-    private PostagemRepository postagemRepository;
+	@Mock
+	PostagemRepository postagemRepository;
 
-    @Mock
-    private AtleticaRepository atleticaRepository;
+	@Mock
+	AtleticaRepository atleticaRepository;
 
-    @InjectMocks
-    private PostagemService postagemService;
+	@InjectMocks
+	private PostagemService postagemService;
 
-    public PostagemServiceTest() {
-        MockitoAnnotations.openMocks(this);
-    }
+	public PostagemServiceTest() {
+		MockitoAnnotations.openMocks(this);
+	}
 
-    @Test
-    void testCriarPostagemComPermissao() {
-        PostagemEntity postagem = new PostagemEntity();
-        postagem.setConteudo("Programação da festa");
+	@Test
+	void testCriarPostagemComPermissao() {
+		PostagemEntity postagem = new PostagemEntity();
+		postagem.setImagem("Programação da festa");
 
-        AtleticaEntity atletica = new AtleticaEntity();
-        atletica.setId(1L);
+		AtleticaEntity atletica = new AtleticaEntity();
+		atletica.setId(1L);
 
-        // Simulações
-        when(atleticaRepository.findById(1L)).thenReturn(Optional.of(atletica));
-        when(postagemRepository.save(any(PostagemEntity.class))).thenReturn(postagem);
+		// Simulações
+		when(atleticaRepository.findById(1L)).thenReturn(Optional.of(atletica));
+		when(postagemRepository.save(any(PostagemEntity.class))).thenReturn(postagem);
 
-        // Execução
-        PostagemEntity resultado = postagemService.criarPostagem(1L, postagem, 1L);
+		// Execução
+		PostagemEntity resultado = postagemService.criarPostagem(1L, postagem, 1L);
 
-        // Verificações
-        assertNotNull(resultado);
-        assertEquals("Programação da festa", resultado.getConteudo());
-        verify(postagemRepository, times(1)).save(postagem);
-    }
+		// Verificações
+		assertNotNull(resultado);
+		assertEquals("Programação da festa", resultado.getImagem());
+		verify(postagemRepository, times(1)).save(postagem);
+	}
 
-    @Test
-    void testCriarPostagemSemPermissao() {
-        
-        PostagemEntity postagem = new PostagemEntity();
-        AtleticaEntity atletica = new AtleticaEntity();
-        atletica.setId(2L);  // Simula que o usuário autorizado é diferente
+	@Test
+	void testCriarPostagemSemPermissao() {
 
-        // Simulações
-        when(atleticaRepository.findById(1L)).thenReturn(Optional.of(atletica));
+		PostagemService postagemService = new PostagemService();
 
-        // Execução e Verificação
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            postagemService.criarPostagem(1L, postagem, 1L);
-        });
+		AtleticaEntity atleticaEntity = new AtleticaEntity();
+		atleticaEntity.setId(2L); // Simula que o ID do usuário autorizado é diferente
 
-        assertEquals("Usuário não autorizado a postar", exception.getMessage());
-        verify(postagemRepository, never()).save(any(PostagemEntity.class));
-    }
+		when(atleticaRepository.findById(1L)).thenReturn(Optional.of(atleticaEntity));
 
+		// Execução e Verificação
+		Exception exception = assertThrows(RuntimeException.class, () -> {
+			// Aqui você deve chamar o método correto do serviço de postagem
+			postagemService.criarPostagem(1L, new PostagemEntity(), 1L); // nova postagem
+		});
+
+		assertEquals("Usuário não autorizado a postar", exception.getMessage());
+
+		// Verifica que nenhuma postagem foi salva no repositório
+		verify(postagemRepository, never()).save(any(PostagemEntity.class));
+	}
 }
